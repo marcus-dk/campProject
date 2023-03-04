@@ -29,6 +29,10 @@ deriv_relu = lambda x: 1 if x > 0 else 0
 # softmax activation function
 softmax = lambda x: np.exp(x)/np.sum(np.exp(x), axis=0)
 
+def softmax_prime(s):
+    jacobian = np.diag(s) - np.outer(s, s)
+    return jacobian
+
 # ---------------------------------------------------
 
 def cross_entropy_loss(predictions, labels):
@@ -78,6 +82,21 @@ def hL2oL(hlNodes, hiddenLayer, oLNodes):
 
     return outgoingNodes, weights
 
+def backprop(weights, biases, inputs, labels, predictions, learning_rate, z):
+    """Performs backpropagation to update weights and biases based on cross-entropy loss."""
+    error_signal = predictions - labels
+    d_loss_w = np.dot(inputs[:,np.newaxis], error_signal[np.newaxis,:] * softmax_prime(z)[np.newaxis,:])
+    d_loss_b = error_signal * softmax_prime(z)
+    d_loss_a = np.dot(error_signal, weights) * softmax_prime(z)
+    d_loss_w = np.dot(inputs[:,np.newaxis], d_loss_a[np.newaxis,:] * softmax_prime(z)[np.newaxis,:])
+    d_loss_b = d_loss_a * softmax_prime(z)
+    return [d_loss_w, d_loss_a, d_loss_b]
+
+
+
+
+
+    
 
 # actual neural network
 def nn(train_images, train_labels):
@@ -105,6 +124,11 @@ def nn(train_images, train_labels):
 
     print(dreLUloss)
 
+    weights = hlweights
+    weights = np.append(weights, olweights)
+    
+    backpropreturn = backprop(weights, 0, flattened_train_images[0], one_hotlabel, softmaxolvalues, 0.1, olvalues)
+    print(backpropreturn)
     #print(softmaxolvalues)
     #print(train_labels[0])
     #print(olweights)
